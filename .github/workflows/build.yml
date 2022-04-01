@@ -1,0 +1,29 @@
+name: Build
+on:
+  push:
+    branches: [ main ]
+  
+jobs:
+  build:
+    name: Build - ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v1
+      - name: Package
+        run: |
+          mkdir dist
+          cargo install --path . --bins --root dist
+      - uses: actions/upload-artifact@v2
+        with:
+          name: bins-${{ matrix.os }}
+          path: |
+            dist/bin/*
