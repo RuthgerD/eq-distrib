@@ -9,22 +9,23 @@ const OUT_HEADER: &[&str] = &[
     "person", "sweet1", "sweet2", "sweet3", "sweet4", "savory1", "savory2", "savory3", "savory4",
 ];
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct Named {
     name: String,
 }
 
-fn make_random_sample(vec: &[Named]) -> Vec<&Named> {
+fn make_random_sample(v: &[Named]) -> Vec<&Named> {
     let mut rng = rand::thread_rng();
 
-    let mut buf: Vec<_> = (0..vec.len())
-        .cycle()
-        .take(vec.len() * MAX_SINGLE)
-        .map(|i| &vec[i])
-        .collect();
+    let mut scratch: Vec<_> = v.iter().collect();
 
-    buf.shuffle(&mut rng);
-    buf
+    let mut out = Vec::with_capacity(v.len() * MAX_SINGLE);
+    for _ in 0..v.len() * MAX_SINGLE {
+        scratch.shuffle(&mut rng);
+        out.extend(scratch.iter().cloned());
+    }
+
+    out
 }
 
 fn main() {
@@ -54,11 +55,11 @@ fn main() {
     for person in people_input {
         wtr.write_field(&person.name).unwrap();
 
-        for &sweet in sweet_iter.by_ref().take(ITEM_PP) {
+        for sweet in sweet_iter.by_ref().take(ITEM_PP) {
             wtr.write_field(&sweet.name).unwrap();
         }
 
-        for &savory in savory_iter.by_ref().take(ITEM_PP) {
+        for savory in savory_iter.by_ref().take(ITEM_PP) {
             wtr.write_field(&savory.name).unwrap();
         }
 
